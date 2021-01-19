@@ -1,18 +1,28 @@
 // 自己的路由器
 // 1.VueRouter类，是一个插件
+import Link from './krouter-link'
+import View from './krouter-view'
 let Vue;
 class VueRouter {
   constructor(options) {
     this.$options = options;
+    console.log('this.$options=',this.$options)
+    //缓存path 和route映射关系
+    this.routeMap = {}
+    this.$options.routes.forEach(route => {
+      this.routeMap[route.path] = route
+    })
 
     // 声明一个响应式的current
     // 渲染函数如果要重复执行，必须依赖于响应式数据
     const initial = window.location.hash.slice(1) || "/";
+    console.log(' window.location.hash=', window.location.hash,'initial=',initial)
     Vue.util.defineReactive(this, "current", initial);
     // this.current = window.location.hash.slice(1) || '/'
 
     // 监听url变化
     window.addEventListener("hashchange", () => {
+      console.log('hashchange  window.location.hash=', window.location.hash,'initial=',window.location.hash.slice(1))
       this.current = window.location.hash.slice(1);
     });
   }
@@ -37,34 +47,8 @@ VueRouter.install = function(_Vue) {
 
   // 3.声明两个全局组件router-view、router-link
   // <router-link to="/abc">xxx</router-link>
-  Vue.component("router-link", {
-    props: {
-      to: {
-        type: String,
-        required: true,
-      },
-    },
-    render(h) {
-      // <a href="#/abc">xxx</a>
-      // this指向当前组件实例
-      // return <a href={'#'+this.to}>{this.$slots.default}</a>
-      return h("a", { attrs: { href: "#" + this.to } }, this.$slots.default);
-    },
-  });
-  Vue.component("router-view", {
-    render(h) {
-      // current
-      // 根据current获取路由表中对应的组件并渲染它
-      let component = null;
-      const route = this.$router.$options.routes.find(
-        (route) => route.path === this.$router.current
-      );
-      if (route) {
-        component = route.component
-      }
-      return h(component);
-    },
-  });
+  Vue.component("router-link", Link);
+  Vue.component("router-view", View);
 };
 
 export default VueRouter;
